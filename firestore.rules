@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function profile() { return get(/databases/$(db)/documents/users/$(request.auth.uid)).data; }
+    function hasProfile() { return signedIn() && exists(/databases/$(db)/documents/users/$(request.auth.uid)); }
+    function isStaff() { return hasProfile() && profile().role in ['admin', 'clerk']; }
+    function isAdmin() { return hasProfile() && profile().role == 'admin'; }
+    function schoolNotCreated() { return !exists(/databases/$(db)/documents/settings/config); }
+
+    // School name + theme: readable before login (shown on login screen)
+    match /settings/config {
+      allow get: if true;
+      allow create: if signedIn() && schoolNotCreated();   // first-time setup only
+      allow update: if isAdmin();
+    }
+    // UPI ID, last backup date
+    match /settings/private {
+      allow read: if isStaff();
+      allow write: if isAdmin();
+    }
+
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow create: if signedIn() && (
+        isAdmin() ||
+        (request.auth.uid == uid && schoolNotCreated() && request.resource.data.role == 'admin') ||
+        (request.auth.uid == uid && request.resource.data.role == 'pending' &&
+         request.resource.data.keys().hasOnly(['name', 'email', 'mobile', 'role', 'createdAt']))
+      );
+      allow update: if isAdmin() || (
+        signedIn() && request.auth.uid == uid &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sig'])
+      );
+      allow delete: if false;
+    }
+
+    match /students/{id} {
+      allow read, create, update: if isStaff();
+      allow delete: if isAdmin();
+    }
+    match /payments/{id} {
+      allow read, create: if isStaff();
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+    match /sigs/{id} {
+      allow read, create: if isStaff();
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+    match /counters/{id} {
+      allow read, write: if isStaff();
+    }
+  }
+}
