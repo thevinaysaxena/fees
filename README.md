@@ -91,3 +91,6 @@ buttons nahi chalte; wo project in buttons ke liye native bridge ke saath hai.
 
 - **Kaksha (class) range:** school banate waqt chunein ki kaksha 1 se kaha tak hai (1 se 12 mein koi bhi). Settings -> "Classes" se baad mein badal sakte hain (jis kaksha mein bacche hain usse kam nahi kar sakte).
 - **Profile:** Dashboard par "Profile" button (sabke liye) aur Settings ke upar bhi profile dikhti hai.
+
+- **Phone number par tap:** bacche ke number par dabate hi "Call" ya "WhatsApp" ka option aata hai; jo chunein wahi hota hai.
+- **Paise ke rang:** deya/fee = neela, jama = hara, bakaya = laal, chhoot = baingani, aaj ka sangrah = narangi (taaki ek nazar mein samajh aaye).
